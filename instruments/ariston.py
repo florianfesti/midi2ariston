@@ -60,8 +60,10 @@ class Ariston(Instrument):
         85,
         86]
 
-    def __init__(self):
+    def __init__(self, playtime=45., min_break=0.05):
         super(Ariston, self).__init__()
+        self.playtime = playtime
+        self.min_break = min_break
         self.tone2track = {t :  pos for t, pos in zip(self.tones, self.track_positions)}
 
     def render(self, tracks):
@@ -72,8 +74,7 @@ class Ariston(Instrument):
         for x, y in ((-37, 0), (0, -37), (37, 0), (0, 37)):
             self.circle(250 + x, 250 + y, 3)
 
-        rad_per_second = math.pi * 2 / 45.0 # 45 seconds playtime
-        min_break = 0.1 # minimal break between notes of te same pitch
+        rad_per_second = math.pi * 2 / self.playtime
 
         lines, unsupported = tracks.parse_tracks(self)
 
@@ -84,7 +85,7 @@ class Ariston(Instrument):
                     # XXX check s
                     if len(line) > i+1:
                         # XXX check line[i+1]
-                        e.tick = min(e.tick, line[i+1].tick-min_break)
+                        e.tick = min(e.tick, line[i+1].tick-self.min_break)
                     if s.tick > e.tick: # needed?
                         print(s.tick, e.tick, s, e)
                     self.ctx.arc(250, 250, self.tone2track[s.pitch]-1.25, s.tick * rad_per_second, e.tick * rad_per_second)

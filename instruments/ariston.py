@@ -74,7 +74,8 @@ class Ariston(Instrument):
         for x, y in ((-37, 0), (0, -37), (37, 0), (0, 37)):
             self.circle(250 + x, 250 + y, 3)
 
-        rad_per_second = math.pi * 2 / self.playtime
+        rad_per_second = -math.pi * 2 / self.playtime
+        start_angle = 1*math.pi
 
         lines, unsupported = tracks.parse_tracks(self)
 
@@ -88,8 +89,10 @@ class Ariston(Instrument):
                         e.tick = min(e.tick, line[i+1].tick-self.min_break)
                     if s.tick > e.tick: # needed?
                         print(s.tick, e.tick, s, e)
-                    self.ctx.arc(250, 250, self.tone2track[s.pitch]-1.25, s.tick * rad_per_second, e.tick * rad_per_second)
-                    self.ctx.arc_negative(250, 250, self.tone2track[s.pitch]+1.25, e.tick * rad_per_second, s.tick * rad_per_second)
+                    s_arc = s.tick * rad_per_second + start_angle
+                    e_arc = e.tick * rad_per_second + start_angle
+                    self.ctx.arc(250, 250, self.tone2track[s.pitch]-1.25, e_arc, s_arc)
+                    self.ctx.arc_negative(250, 250, self.tone2track[s.pitch]+1.25, s_arc, e_arc)
                     self.ctx.close_path()
                     self.ctx.stroke()
         if unsupported:

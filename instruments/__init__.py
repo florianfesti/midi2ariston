@@ -6,6 +6,17 @@ except ImportError:
     pass
 import cairo
 import math
+import pkgutil
+
+def getInstruments():
+    instruments = {}
+    for importer, modname, ispkg in pkgutil.iter_modules(__path__, 'instruments.'):
+        module = __import__(modname, fromlist="dummy")
+        for k, v in module.__dict__.items():
+            if (type(v) is type and issubclass(v, Instrument) and
+                v is not Instrument):
+                instruments[k] = v
+    return instruments
 
 class Instrument(object):
 

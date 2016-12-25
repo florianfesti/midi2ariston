@@ -11,7 +11,7 @@ class MidiTrack:
     def __init__(self, filename):
         
         m = midi.FileReader()
-        self.tracks = m.read(open(sys.argv[1], 'rb'))
+        self.tracks = m.read(open(filename, 'rb'))
         #print(self.tracks)
         if self.tracks.format == 2:
             raise ValueError("Midi format 2 is not supported")

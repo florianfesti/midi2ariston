@@ -1,12 +1,24 @@
 #!/usr/bin/python
 
-import sys
+import argparse
 import miditrack
-from instruments.ariston import Ariston
+from instruments import getInstruments
 
 def main():
-    t = miditrack.MidiTrack(sys.argv[1])
-    a = Ariston()
-    a.render(t)
+    i = getInstruments()
+
+    parser = argparse.ArgumentParser("Convert midi to punch cards, ...")
+    parser.add_argument('--instrument', '-i', type=str, default='Ariston',
+                        choices=i.keys(),
+                        help="Type of instrument to render the piece for")
+    parser.add_argument('--output', '-o', type=str, default='')
+    parser.add_argument('input', type=str)
+
+    args = parser.parse_args()
+
+    instrument = i[args.instrument]()
+
+    t = miditrack.MidiTrack(args.input)
+    instrument.render(t)
 main()
 

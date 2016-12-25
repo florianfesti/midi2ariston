@@ -2,16 +2,15 @@
 import sys
 import math
 
-sys.path.append("/home/ffesti/CVS/python-midi/src/")
-from fileio import FileReader
-import events
-import constants
+import midi
+from midi import events
+from midi import constants
 
 class MidiTrack:
 
     def __init__(self, filename):
         
-        m = FileReader()
+        m = midi.FileReader()
         self.tracks = m.read(open(sys.argv[1], 'rb'))
         #print(self.tracks)
         if self.tracks.format == 2:

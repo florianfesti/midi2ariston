@@ -2,10 +2,6 @@ import math
 
 import midi
 from instruments import Instrument
-import sys
-sys.path.append("/home/ffesti/CVS/python-midi/src/")
-import events
-import constants
 
 class Ariston(Instrument):
     track_positions = [
@@ -81,7 +77,7 @@ class Ariston(Instrument):
 
         for line in lines:
             for i, e in enumerate(line):
-                if isinstance(e, events.NoteOnEvent) and e.velocity == 0 or isinstance(e, events.NoteOffEvent):
+                if isinstance(e, midi.events.NoteOnEvent) and e.velocity == 0 or isinstance(e, midi.events.NoteOffEvent):
                     s = line[i-1]
                     # XXX check s
                     if len(line) > i+1:

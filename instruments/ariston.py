@@ -93,6 +93,6 @@ class Ariston(Instrument):
                     self.ctx.stroke()
         if unsupported:
             self.ctx.move_to(10, 480)
-            self.ctx.show_text("Pitches ignored: " + " ".join(sorted(unsupported)))
+            self.ctx.show_text("Pitches ignored: " + ", ".join(sorted(unsupported)))
         self.close()
     

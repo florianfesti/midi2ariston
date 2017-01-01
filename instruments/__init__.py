@@ -36,7 +36,25 @@ class Instrument(object):
         self.surface.flush()
         self.surface.finish()
 
+    def moveTo(self, x, y=0.0, degrees=0):
+        """
+        Move coordinate system to given point
+        :param y:  (Default value = 0.0)
+        :param degrees:  (Default value = 0)
+        """
+        self.ctx.move_to(0, 0)
+        self.ctx.translate(x, y)
+        self.ctx.rotate(degrees * math.pi / 180.0)
+        self.ctx.move_to(0, 0)
+
     def circle(self, x, y, r):
         self.ctx.arc(x, y, r, 0, 2*math.pi)
         self.ctx.stroke()
 
+    def getLast(self, lines):
+        last = None
+        for line in lines:
+            for i, e in enumerate(line):
+                if not last or last.tick < e.tick:
+                    last = e
+        return last

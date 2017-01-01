@@ -12,29 +12,65 @@ class Pling30(Instrument):
 
     tones = [t + 36 for t in tones]
     track_positions = [1.23 + i * 5.08 for i in range(30)] # XXX 
+    width = 160 # XXX
 
     def __init__(self):
         super(Pling30, self).__init__()
         self.tone2track = {t :  pos for t, pos in zip(self.tones, self.track_positions)}
+        self.lead = 30
+        self.trail = 10
+        self.mm_per_second = 12.7
+        self.hole_diameter = 2.5
+
+    def renderSection(self, lines,  start, end, cards=None):
+        mm_per_second = self.mm_per_second
+
+        t_start = (start - self.lead) / mm_per_second
+        t_end = (end - self.lead) / mm_per_second
+
+        self.ctx.rectangle(0, 0, end-start, self.width)
+        self.ctx.stroke()
+
+        dt = 0.5*self.hole_diameter/mm_per_second
+
+        for line in lines:
+            for i, e in enumerate(line):
+                if e.tick < t_start - dt:
+                    continue
+                elif e.tick > t_end + dt:
+                    break
+                if isinstance(e, midi.events.NoteOnEvent) and e.velocity > 0:
+                    self.circle(mm_per_second*(e.tick-t_start),
+                                self.tone2track[e.pitch], self.hole_diameter/2)
+
+        if cards:
+            d, x = self.ctx.get_dash()
+            print(d)
+            self.ctx.set_dash([0.5, 1.5])
+            for i in range(int((end-start) // cards)):
+                self.ctx.move_to((i+1) * cards, 0)
+                self.ctx.line_to((i+1) * cards, self.width)
+            self.ctx.stroke()
+            self.ctx.set_dash(d)
+
     
     def render(self, tracks):
         self.open('pling30.svg')
-        mm_per_second = 12.7
-        hole_diameter = 2.5
 
         lines, unsupported = tracks.parse_tracks(self)
-
-        posx = 20
-        posy = 20
+        last = self.getLast(lines)
         
-        for line in lines:
-            for i, e in enumerate(line):
-                if isinstance(e, midi.events.NoteOnEvent) and e.velocity > 0:
-                    self.circle(posx+mm_per_second*e.tick,
-                                posy + self.tone2track[e.pitch], hole_diameter/2)
+        length = self.lead + self.mm_per_second*last.tick + self.trail
+
+        l_length = 200
+        self.moveTo(10, 20)
 
         if unsupported:
-            self.ctx.move_to(10, 480)
-            self.ctx.show_text("Pitches ignored: " + " ".join(sorted(unsupported)))
+            self.ctx.show_text("Pitches ignored: " + ", ".join(sorted(unsupported)))
+            self.moveTo(0, 20)
+
+        for i in range(int(length // l_length) + 1):
+            self.renderSection(lines, i * l_length, (i+1) * l_length, 100)
+            self.moveTo(0, self.width + 5)
+
         self.close()
-        

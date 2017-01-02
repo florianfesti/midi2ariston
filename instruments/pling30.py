@@ -1,8 +1,8 @@
 import midi
-from instruments import Instrument
+from instruments import Pling
 from midi import *
 
-class Pling30(Instrument):
+class Pling30(Pling):
 
     tones = list(reversed(
         [C_0, D_0, G_0, A_0, B_0,
@@ -24,66 +24,3 @@ class Pling30(Instrument):
         self.mm_per_second = 12.7
         self.hole_diameter = 3.5
 
-    def renderSection(self, tracks,  start, end, cards=None):
-        mm_per_second = self.mm_per_second
-
-        t_start = (start - self.lead) / mm_per_second
-        t_end = (end - self.lead) / mm_per_second
-
-        self.ctx.rectangle(0, 0, end-start, self.width)
-        self.ctx.stroke()
-
-        dt = 0.5*self.hole_diameter/mm_per_second
-
-        for line in tracks.lines:
-            for i, e in enumerate(line):
-                if e.tick < t_start - dt:
-                    continue
-                elif e.tick > t_end + dt:
-                    break
-                if isinstance(e, midi.events.NoteOnEvent) and e.velocity > 0:
-                    self.circle(mm_per_second*(e.tick-t_start),
-                                self.tone2track[e.pitch], self.hole_diameter/2)
-
-        if cards:
-            d, x = self.ctx.get_dash()
-            self.ctx.set_dash([0.5, 1.5])
-            for i in range(int((end-start) // cards)-1):
-                self.ctx.move_to((i+1) * cards, 0)
-                self.ctx.line_to((i+1) * cards, self.width)
-            self.ctx.stroke()
-            self.ctx.set_dash(d)
-
-    
-    def render(self, tracks):
-
-        tracks.parse_tracks(self)
-        last = tracks.getLastTime()
-        
-        length = self.lead + self.mm_per_second*last + self.trail
-
-        if self.card_length:
-            l_length = (self.length // self.card_length) * self.card_length
-        else:
-            l_length = self.length
-
-        lines = int(length // l_length + 1)
-
-        self.open(l_length + 100, lines * (self.width + 20) + 100)
-
-        self.moveTo(10, 20)
-
-        if tracks.unsupported:
-            self.ctx.show_text("Pitches ignored: " + ", ".join(sorted(tracks.unsupported)))
-            self.moveTo(0, 20)
-
-        for i in range(lines):
-            end = (i+1) * l_length
-            if i == lines-1:
-                end = length
-                if self.card_length:
-                    end = self.card_length * (length // self.card_length + 1)
-            self.renderSection(tracks, i * l_length, end, self.card_length)
-            self.moveTo(0, self.width + 5)
-
-        self.close()

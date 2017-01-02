@@ -7,6 +7,7 @@ except ImportError:
 import cairo
 import math
 import pkgutil
+import midi
 
 def getInstruments():
     instruments = {}
@@ -14,7 +15,7 @@ def getInstruments():
         module = __import__(modname, fromlist="dummy")
         for k, v in module.__dict__.items():
             if (type(v) is type and issubclass(v, Instrument) and
-                v is not Instrument):
+                v.__module__ is not Instrument.__module__):
                 instruments[k] = v
     return instruments
 
@@ -59,3 +60,115 @@ class Instrument(object):
     def circle(self, x, y, r):
         self.ctx.arc(x, y, r, 0, 2*math.pi)
         self.ctx.stroke()
+
+class PunchCardInstrument(Instrument):
+
+    def render(self, tracks):
+
+        tracks.parse_tracks(self)
+        last = tracks.getLastTime()
+
+        length = self.lead + self.mm_per_second*last + self.trail
+
+        if self.card_length:
+            l_length = (self.length // self.card_length) * self.card_length
+        else:
+            l_length = self.length
+
+        lines = int(length // l_length + 1)
+
+        self.open(l_length + 100, lines * (self.width + 20) + 100)
+
+        self.moveTo(10, 20)
+
+        if tracks.unsupported:
+            self.ctx.show_text("Pitches ignored: " + ", ".join(sorted(tracks.unsupported)))
+            self.moveTo(0, 20)
+
+        for i in range(lines):
+            end = (i+1) * l_length
+            if i == lines-1:
+                end = length
+                if self.card_length:
+                    end = self.card_length * (length // self.card_length + 1)
+            self.renderSection(tracks, i * l_length, end, self.card_length)
+            self.moveTo(0, self.width + 5)
+
+        self.close()
+
+    def renderSectionBorders(self, start, end, cards=None):
+        mm_per_second = self.mm_per_second
+
+        self.ctx.rectangle(0, 0, end-start, self.width)
+        self.ctx.stroke()
+
+        if cards:
+            d, x = self.ctx.get_dash()
+            self.ctx.set_dash([0.5, 1.5])
+            for i in range(int((end-start) // cards)-1):
+                self.ctx.move_to((i+1) * cards, 0)
+                self.ctx.line_to((i+1) * cards, self.width)
+            self.ctx.stroke()
+            self.ctx.set_dash(d)
+
+class Pling(PunchCardInstrument):
+
+    def renderSection(self, tracks,  start, end, cards=None):
+        mm_per_second = self.mm_per_second
+
+        t_start = (start - self.lead) / mm_per_second
+        t_end = (end - self.lead) / mm_per_second
+
+        self.renderSectionBorders(start, end, cards)
+
+        dt = 0.5*self.hole_diameter/mm_per_second
+
+        for line in tracks.lines:
+            for i, e in enumerate(line):
+                if e.tick < t_start - dt:
+                    continue
+                elif e.tick > t_end + dt:
+                    break
+                if isinstance(e, midi.events.NoteOnEvent) and e.velocity > 0:
+                    self.circle(mm_per_second*(e.tick-t_start),
+                                self.tone2track[e.pitch], self.hole_diameter/2)
+
+
+class PunchTapeOrgan(PunchCardInstrument):
+
+    def renderSection(self, tracks,  start, end, cards=None):
+        mm_per_second = self.mm_per_second
+
+        t_start = (start - self.lead) / mm_per_second
+        t_end = (end - self.lead) / mm_per_second
+
+        self.renderSectionBorders(start, end, cards)
+
+        for line in tracks.lines:
+            for i, e in enumerate(line):
+                s = line[i-1]
+                if i>1 and e.tick < s.tick:
+                    print(s.tick, e.tick, s, e)
+
+        for line in tracks.lines:
+            for i, e in enumerate(line):
+                if (isinstance(e, midi.events.NoteOnEvent) and e.velocity == 0
+                    or isinstance(e, midi.events.NoteOffEvent)):
+                    s = line[i-1]
+                    if e.tick < t_start:
+                        continue
+                    elif s.tick > t_end:
+                        break
+
+                    # XXX check s
+                    if len(line) > i+1:
+                        # XXX check line[i+1]
+                        e.tick = min(e.tick, line[i+1].tick-self.min_break/mm_per_second)
+                    if s.tick > e.tick: # needed?
+                        print(s.tick, e.tick, s, e)
+                    s_x = (s.tick-t_start) * mm_per_second
+                    e_x = (e.tick-t_start) * mm_per_second
+                    w = 0.5 * self.trackwidth
+                    self.ctx.rectangle(s_x, self.tone2track[s.pitch] - w,
+                                       e_x-s_x, self.trackwidth)
+                    self.ctx.stroke()

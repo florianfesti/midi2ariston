@@ -56,14 +56,14 @@ class Ariston(Instrument):
         85,
         86]
 
-    def __init__(self, playtime=45., min_break=0.05):
-        super(Ariston, self).__init__()
+    def __init__(self, args, playtime=45., min_break=0.05):
+        super(Ariston, self).__init__(args)
         self.playtime = playtime
         self.min_break = min_break
         self.tone2track = {t :  pos for t, pos in zip(self.tones, self.track_positions)}
 
     def render(self, tracks):
-        self.open("ariston.svg")
+        self.open()
 
         self.circle(250, 250, 166)
         self.circle(250, 250, 5)
@@ -73,9 +73,9 @@ class Ariston(Instrument):
         rad_per_second = -math.pi * 2 / self.playtime
         start_angle = 1*math.pi
 
-        lines, unsupported = tracks.parse_tracks(self)
+        tracks.parse_tracks(self)
 
-        for line in lines:
+        for line in tracks.lines:
             for i, e in enumerate(line):
                 if isinstance(e, midi.events.NoteOnEvent) and e.velocity == 0 or isinstance(e, midi.events.NoteOffEvent):
                     s = line[i-1]
@@ -91,8 +91,8 @@ class Ariston(Instrument):
                     self.ctx.arc_negative(250, 250, self.tone2track[s.pitch]+1.25, s_arc, e_arc)
                     self.ctx.close_path()
                     self.ctx.stroke()
-        if unsupported:
+        if tracks.unsupported:
             self.ctx.move_to(10, 480)
-            self.ctx.show_text("Pitches ignored: " + ", ".join(sorted(unsupported)))
+            self.ctx.show_text("Pitches ignored: " + ", ".join(sorted(tracks.unsupported)))
         self.close()
     

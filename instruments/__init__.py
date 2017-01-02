@@ -22,11 +22,20 @@ class Instrument(object):
 
     tones = []
     
-    def __init__(self):
+    def __init__(self, args):
         self.tone2number = {t : i for i, t in enumerate(self.tones)}
+        self.args = args
+        self.output = args.output
+        if not self.output:
+            if args.input.endswith('.midi'):
+                self.output = args.input[:-5] + '.svg'
+            elif args.input.endswith('.mid'):
+                self.output = args.input[:-4] + '.svg'
+            else:
+                self.output = args.input + '.svg'
     
-    def open(self, filename):
-        self.surface = cairo.SVGSurface(filename, 500, 500)
+    def open(self, x=500, y=500):
+        self.surface = cairo.SVGSurface(self.output, x, y)
         self.ctx = cairo.Context(self.surface)
         self.ctx.set_source_rgb(0.0, 0.0, 0.0)
         self.ctx.set_line_width(0.2)
@@ -50,11 +59,3 @@ class Instrument(object):
     def circle(self, x, y, r):
         self.ctx.arc(x, y, r, 0, 2*math.pi)
         self.ctx.stroke()
-
-    def getLast(self, lines):
-        last = None
-        for line in lines:
-            for i, e in enumerate(line):
-                if not last or last.tick < e.tick:
-                    last = e
-        return last

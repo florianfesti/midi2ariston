@@ -11,18 +11,20 @@ class Pling30(Instrument):
          C_3, D_3, E_3]))
 
     tones = [t + 36 for t in tones]
-    track_positions = [1.23 + i * 5.08 for i in range(30)] # XXX 
-    width = 160 # XXX
+    track_positions = [10 + i * 4.0 for i in range(30)] # XXX
+    width = 20 + 29 * 4.0 # XXX
 
-    def __init__(self):
-        super(Pling30, self).__init__()
+    def __init__(self, args):
+        super(Pling30, self).__init__(args)
         self.tone2track = {t :  pos for t, pos in zip(self.tones, self.track_positions)}
+        self.length = args.width
+        self.card_length = args.cardlength
         self.lead = 30
         self.trail = 10
         self.mm_per_second = 12.7
-        self.hole_diameter = 2.5
+        self.hole_diameter = 3.5
 
-    def renderSection(self, lines,  start, end, cards=None):
+    def renderSection(self, tracks,  start, end, cards=None):
         mm_per_second = self.mm_per_second
 
         t_start = (start - self.lead) / mm_per_second
@@ -33,7 +35,7 @@ class Pling30(Instrument):
 
         dt = 0.5*self.hole_diameter/mm_per_second
 
-        for line in lines:
+        for line in tracks.lines:
             for i, e in enumerate(line):
                 if e.tick < t_start - dt:
                     continue
@@ -45,9 +47,8 @@ class Pling30(Instrument):
 
         if cards:
             d, x = self.ctx.get_dash()
-            print(d)
             self.ctx.set_dash([0.5, 1.5])
-            for i in range(int((end-start) // cards)):
+            for i in range(int((end-start) // cards)-1):
                 self.ctx.move_to((i+1) * cards, 0)
                 self.ctx.line_to((i+1) * cards, self.width)
             self.ctx.stroke()
@@ -55,22 +56,34 @@ class Pling30(Instrument):
 
     
     def render(self, tracks):
-        self.open('pling30.svg')
 
-        lines, unsupported = tracks.parse_tracks(self)
-        last = self.getLast(lines)
+        tracks.parse_tracks(self)
+        last = tracks.getLastTime()
         
-        length = self.lead + self.mm_per_second*last.tick + self.trail
+        length = self.lead + self.mm_per_second*last + self.trail
 
-        l_length = 200
+        if self.card_length:
+            l_length = (self.length // self.card_length) * self.card_length
+        else:
+            l_length = self.length
+
+        lines = int(length // l_length + 1)
+
+        self.open(l_length + 100, lines * (self.width + 20) + 100)
+
         self.moveTo(10, 20)
 
-        if unsupported:
-            self.ctx.show_text("Pitches ignored: " + ", ".join(sorted(unsupported)))
+        if tracks.unsupported:
+            self.ctx.show_text("Pitches ignored: " + ", ".join(sorted(tracks.unsupported)))
             self.moveTo(0, 20)
 
-        for i in range(int(length // l_length) + 1):
-            self.renderSection(lines, i * l_length, (i+1) * l_length, 100)
+        for i in range(lines):
+            end = (i+1) * l_length
+            if i == lines-1:
+                end = length
+                if self.card_length:
+                    end = self.card_length * (length // self.card_length + 1)
+            self.renderSection(tracks, i * l_length, end, self.card_length)
             self.moveTo(0, self.width + 5)
 
         self.close()

@@ -11,12 +11,16 @@ def main():
     parser.add_argument('--instrument', '-i', type=str, default='Ariston',
                         choices=i.keys(),
                         help="Type of instrument to render the piece for")
+    parser.add_argument('--width', '-w', type=float, default=800.0,
+                        help='maximum overall width of the pieces rendered.')
+    parser.add_argument('--cardlength', '-c', type=float, default=0.0,
+                        help='length of the punch cards')
     parser.add_argument('--output', '-o', type=str, default='')
     parser.add_argument('input', type=str)
 
     args = parser.parse_args()
 
-    instrument = i[args.instrument]()
+    instrument = i[args.instrument](args)
 
     t = miditrack.MidiTrack(args.input)
     instrument.render(t)

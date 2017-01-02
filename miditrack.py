@@ -9,7 +9,6 @@ from midi import constants
 class MidiTrack:
 
     def __init__(self, filename):
-        
         m = midi.FileReader()
         self.tracks = m.read(open(filename, 'rb'))
         #print(self.tracks)
@@ -39,5 +38,14 @@ class MidiTrack:
 
         for line in lines:
             line.sort(key=lambda x: x.tick)
-                
-        return lines, unsupported
+
+        self.lines = lines
+        self.unsupported = unsupported
+
+    def getLastTime(self):
+        last = None
+        for line in self.lines:
+            for i, e in enumerate(line):
+                if not last or last.tick < e.tick:
+                    last = e
+        return last.tick

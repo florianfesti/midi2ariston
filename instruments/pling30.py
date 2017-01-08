@@ -26,8 +26,8 @@ class Pling30(Pling):
          C_3, D_3, E_3]))
 
     tones = [t + 36 for t in tones]
-    track_positions = [10 + i * 4.0 for i in range(30)] # XXX
-    width = 20 + 29 * 4.0 # XXX
+    track_positions = [6 + i * (58. / 29) for i in range(30)] # XXX
+    width = 70
 
     def __init__(self, args):
         super(Pling30, self).__init__(args)
@@ -36,6 +36,7 @@ class Pling30(Pling):
         self.card_length = args.cardlength
         self.lead = 30
         self.trail = 10
-        self.mm_per_second = 12.7
-        self.hole_diameter = 3.5
+        self.mm_per_second = 16.
+        self.min_distance = 7.
+        self.hole_diameter = 1.75
 

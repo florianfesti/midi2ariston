@@ -20,13 +20,11 @@ from midi import *
 class Pling30(Pling):
 
     tones = list(reversed(
-        [C_0, D_0, G_0, A_0, B_0,
-         C_1, D_1, E_1, F_1, Fs_1, G_1, Gs_1, A_1, As_1, B_1,
-         C_2, Cs_2, D_2, Ds_2, E_2, F_2, Fs_2, G_2, Gs_2, A_2, As_2, B_2,
-         C_3, D_3, E_3]))
+        [53, 55, 60, 62, 64, 65, 67, 69, 70,
+         71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85,
+         86, 87, 88, 89, 91, 93]))
 
-    tones = [t + 36 for t in tones]
-    track_positions = [6 + i * (58. / 29) for i in range(30)] # XXX
+    track_positions = [6 + i * (58. / 29) for i in range(30)]
     width = 70
 
     def __init__(self, args):
@@ -39,4 +37,3 @@ class Pling30(Pling):
         self.mm_per_second = 16.
         self.min_distance = 7.
         self.hole_diameter = 1.75
-

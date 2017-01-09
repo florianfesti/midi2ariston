@@ -33,7 +33,7 @@ class Pling30(Pling):
         self.length = args.width
         self.card_length = args.cardlength
         self.lead = 30
-        self.trail = 10
+        self.trail = 30
         self.mm_per_second = 16.
         self.min_distance = 7.
         self.hole_diameter = 1.75

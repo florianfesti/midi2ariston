@@ -78,7 +78,7 @@ class Ariston(Instrument):
         self.tone2track = {t :  pos for t, pos in zip(self.tones, self.track_positions)}
 
     def render(self, tracks):
-        self.open()
+        self.openCanvas()
 
         self.circle(250, 250, 166)
         self.circle(250, 250, 5)
@@ -109,5 +109,5 @@ class Ariston(Instrument):
         if tracks.unsupported:
             self.ctx.move_to(10, 480)
             self.ctx.show_text("Pitches ignored: " + ", ".join(sorted(tracks.unsupported)))
-        self.close()
+        self.closeCanvas()
     

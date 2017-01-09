@@ -22,6 +22,7 @@ import cairo
 import math
 import pkgutil
 import midi
+import svgutil
 
 def getInstruments():
     instruments = {}
@@ -49,16 +50,20 @@ class Instrument(object):
             else:
                 self.output = args.input + '.svg'
     
-    def open(self, x=500, y=500):
-        self.surface = cairo.SVGSurface(self.output, x, y)
+    def openCanvas(self):
+        self.surface = cairo.SVGSurface(self.output, 10000, 10000)
         self.ctx = cairo.Context(self.surface)
         self.ctx.set_source_rgb(0.0, 0.0, 0.0)
         self.ctx.set_line_width(0.2)
 
-    def close(self):
+    def closeCanvas(self):
         self.ctx.stroke()
         self.surface.flush()
         self.surface.finish()
+
+        svg = svgutil.SVGFile(self.output)
+        svg.getEnvelope()
+        svg.rewriteViewPort()
 
     def moveTo(self, x, y=0.0, degrees=0):
         """
@@ -91,7 +96,7 @@ class PunchCardInstrument(Instrument):
 
         lines = int(length // l_length + 1)
 
-        self.open(l_length + 100, lines * (self.width + 20) + 100)
+        self.openCanvas()
 
         self.moveTo(10, 20)
 
@@ -108,7 +113,7 @@ class PunchCardInstrument(Instrument):
             self.renderSection(tracks, i * l_length, end, self.card_length)
             self.moveTo(0, self.width + 5)
 
-        self.close()
+        self.closeCanvas()
 
     def renderSectionBorders(self, start, end, cards=None):
         mm_per_second = self.mm_per_second

@@ -82,6 +82,20 @@ class Instrument(object):
 
 class PunchCardInstrument(Instrument):
 
+    track_positions = []
+
+    def __init__(self, args):
+        super(PunchCardInstrument, self).__init__(args)
+        self.tone2track = {t :  pos for t, pos in zip(self.tones, self.track_positions)}
+        self.length = args.width
+        self.card_length = args.cardlength
+
+        self.lead = 30
+        self.trail = 30
+
+        self.mm_per_second = 16.
+        self.width = 70
+
     def render(self, tracks):
 
         tracks.parse_tracks(self)
@@ -132,6 +146,12 @@ class PunchCardInstrument(Instrument):
 
 class Pling(PunchCardInstrument):
 
+    def __init__(self, args):
+        super(Pling, self).__init__(args)
+
+        self.hole_diameter = 1.75
+        self.min_distance = 7.
+
     def renderSection(self, tracks,  start, end, cards=None):
         mm_per_second = self.mm_per_second
 
@@ -154,6 +174,12 @@ class Pling(PunchCardInstrument):
 
 
 class PunchTapeOrgan(PunchCardInstrument):
+
+    def __init__(self, args):
+        super(PunchTapeOrgan, self).__init__(args)
+
+        self.min_break = 2.1
+        self.trackwidth = 3.2
 
     def renderSection(self, tracks,  start, end, cards=None):
         mm_per_second = self.mm_per_second

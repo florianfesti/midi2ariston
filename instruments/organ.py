@@ -26,16 +26,11 @@ class Organ(PunchTapeOrgan):
 
     tones = [t + 36 for t in tones]
     track_positions = [10 + i * 4.0 for i in range(30)] # XXX
-    width = 20 + 29 * 4.0 # XXX
 
     def __init__(self, args):
         super(Organ, self).__init__(args)
-        self.tone2track = {t :  pos for t, pos in zip(self.tones, self.track_positions)}
-        self.length = args.width
-        self.card_length = args.cardlength
-        self.lead = 30
-        self.trail = 10
+
         self.mm_per_second = 12.7
-        self.hole_diameter = 3.5
         self.min_break = 2.1
         self.trackwidth = 3.2
+        self.width = 20 + 29 * 4.0 # XXX

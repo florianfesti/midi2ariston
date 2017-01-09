@@ -25,15 +25,11 @@ class Pling30(Pling):
          86, 87, 88, 89, 91, 93]))
 
     track_positions = [6 + i * (58. / 29) for i in range(30)]
-    width = 70
 
     def __init__(self, args):
         super(Pling30, self).__init__(args)
-        self.tone2track = {t :  pos for t, pos in zip(self.tones, self.track_positions)}
-        self.length = args.width
-        self.card_length = args.cardlength
-        self.lead = 30
-        self.trail = 30
+
         self.mm_per_second = 16.
         self.min_distance = 7.
         self.hole_diameter = 1.75
+        self.width = 70

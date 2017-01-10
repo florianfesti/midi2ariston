@@ -37,18 +37,54 @@ class MidiTrack:
 
         lines = [[] for i in range(len(instrument.tones))]
 
-        for track in self.tracks:
-            t = 0.0
-            for e in track:
-                t += s_per_tick * e.tick
-                e.tick = t
-                if isinstance(e, events.NoteOnEvent) or isinstance(e, events.NoteOffEvent):
-                    if e.pitch not in instrument.tone2track:
-                        unsupported.add(constants.NOTE_VALUE_MAP_SHARP[e.pitch])
-                        continue
+
+        lt = len(self.tracks)
+
+        trackpos = [0] * lt
+        trackticks = [0.0] * lt
+        tracktimes = [0.0] * lt
+        tracklengths = [len(t) for t in self.tracks]
+
+        while True:
+            nexttrack = None
+            e = None
+            # find next event
+            for i in range(lt):
+                if (trackpos[i] < tracklengths[i] and
+                    (e is None or
+                     trackticks[i] + self.tracks[i][trackpos[i]].tick <
+                     trackticks[nexttrack] + e.tick)):
+                    nexttrack = i
+                    e = self.tracks[i][trackpos[i]]
+            if nexttrack is None:
+                # No events left
+                break
+
+            # update before tempo changes
+            tracktimes[nexttrack] += s_per_tick * e.tick
+
+            if (isinstance(e, events.NoteOnEvent) or
+                isinstance(e, events.NoteOffEvent)):
+                if e.pitch not in instrument.tone2track:
+                    unsupported.add(constants.NOTE_VALUE_MAP_SHARP[e.pitch])
+                else:
                     lines[instrument.tone2number[e.pitch]].append(e)
-                elif isinstance(e, events.SetTempoEvent):
-                    s_per_tick = e.mpqn * 1E-6 / self.tracks.resolution
+            elif isinstance(e, events.SetTempoEvent):
+                # advance all other tracks to this point in time
+                # using the old tempo
+                tick = trackticks[nexttrack] + e.tick
+                for i in range(2):
+                    if (i == nexttrack or
+                        not (trackpos[i] < tracklengths[i])):
+                        continue
+                    tracktimes[i] += s_per_tick * (tick - trackticks[i])
+                    self.tracks[i][trackpos[i]].tick -= (tick - trackticks[i])
+                    trackticks[i] = tick
+                s_per_tick = e.mpqn * 1E-6 / self.tracks.resolution
+
+            trackticks[nexttrack] += e.tick
+            trackpos[nexttrack] += 1
+            e.tick = tracktimes[nexttrack]
 
         for line in lines:
             line.sort(key=lambda x: x.tick)

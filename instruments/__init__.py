@@ -49,6 +49,7 @@ class Instrument(object):
                 self.output = args.input[:-4] + '.svg'
             else:
                 self.output = args.input + '.svg'
+        self.unplayable = 0
     
     def openCanvas(self):
         self.surface = cairo.SVGSurface(self.output, 10000, 10000)
@@ -112,11 +113,7 @@ class PunchCardInstrument(Instrument):
 
         self.openCanvas()
 
-        self.moveTo(10, 20)
-
-        if tracks.unsupported:
-            self.ctx.show_text("Pitches ignored: " + ", ".join(sorted(tracks.unsupported)))
-            self.moveTo(0, 20)
+        self.moveTo(10, 10)
 
         for i in range(lines):
             end = (i+1) * l_length
@@ -126,6 +123,17 @@ class PunchCardInstrument(Instrument):
                     end = self.card_length * (length // self.card_length + 1)
             self.renderSection(tracks, i * l_length, end, self.card_length)
             self.moveTo(0, self.width + 5)
+
+        err = ""
+        if self.unplayable:
+            err += "%i unplayable notes. " % self.unplayable
+        if tracks.unsupported:
+            err += "Pitches ignored: " + ", ".join(sorted(tracks.unsupported))
+        if err:
+            self.ctx.move_to(10, 20)
+            self.ctx.show_text(err)
+            self.moveTo(0, 20)
+            self.circle(0, 0, 0.1)
 
         self.closeCanvas()
 
@@ -163,15 +171,24 @@ class Pling(PunchCardInstrument):
         dt = 0.5*self.hole_diameter/mm_per_second
 
         for line in tracks.lines:
+            last = None
             for i, e in enumerate(line):
                 if e.tick < t_start - dt:
+                    if (isinstance(e, midi.events.NoteOnEvent) and
+                        e.velocity > 0):
+                        last = e
                     continue
                 elif e.tick > t_end + dt:
                     break
                 if isinstance(e, midi.events.NoteOnEvent) and e.velocity > 0:
+                    if last and (e.tick - last.tick) * mm_per_second < self.min_distance:
+                        self.circle(mm_per_second*(e.tick-t_start),
+                                    self.tone2track[e.pitch], self.hole_diameter/5)
+                        self.unplayable += 1
+                        continue
                     self.circle(mm_per_second*(e.tick-t_start),
                                 self.tone2track[e.pitch], self.hole_diameter/2)
-
+                    last = e
 
 class PunchTapeOrgan(PunchCardInstrument):
 

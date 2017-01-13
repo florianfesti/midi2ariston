@@ -21,9 +21,9 @@ from instruments import getInstruments
 def main():
     i = getInstruments()
 
-    parser = argparse.ArgumentParser("Convert midi to punch cards, ...")
+    parser = argparse.ArgumentParser(description="Convert midi to punch cards, punch tapes, puch discs, ...\n")
     parser.add_argument('--instrument', '-i', type=str, default='Ariston',
-                        choices=i.keys(),
+                        choices=sorted(i.keys()),
                         help="Type of instrument to render the piece for")
     parser.add_argument('--width', '-w', type=float, default=800.0,
                         help='maximum overall width of the pieces rendered.')

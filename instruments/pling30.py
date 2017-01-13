@@ -30,6 +30,6 @@ class Pling30(Pling):
         super(Pling30, self).__init__(args)
 
         self.mm_per_second = 16.
-        self.min_distance = 7.
+        self.min_distance = 7.9
         self.hole_diameter = 1.75
         self.width = 70

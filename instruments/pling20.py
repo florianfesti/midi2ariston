@@ -20,14 +20,14 @@ from midi import *
 class Pling20(Pling):
 
     tones = list(reversed(
-        [ C_3, D_3, E_3, F_3, G_3, A_3, B_3,
-          C_4, D_4, E_4, F_4, G_4, A_4, B_4,
-          C_5, D_5, E_5, F_5, G_5, A_5] ))
+        [ C_4, D_4, E_4, F_4, G_4, A_4, B_4,
+          C_5, D_5, E_5, F_5, G_5, A_5, B_5,
+          C_6, D_6, E_6, F_6, G_6, A_6 ]))
     track_positions = [7. + i * 3 for i in range(20)]
     width = 70
 
     def __init__(self, args):
         super(Pling20, self).__init__(args)
         self.mm_per_second = 16.
-        self.min_distance = 7.
+        self.min_distance = 6.9
         self.hole_diameter = 2.5

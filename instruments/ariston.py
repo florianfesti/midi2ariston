@@ -16,9 +16,9 @@
 import math
 
 import midi
-from instruments import Instrument
+from instruments import PunchTapeOrgan
 
-class Ariston(Instrument):
+class Ariston(PunchTapeOrgan):
     track_positions = [
         70.7,
         74.4,
@@ -71,41 +71,44 @@ class Ariston(Instrument):
         85,
         86]
 
-    def __init__(self, args, playtime=45., min_break=0.05):
+    def __init__(self, args, playtime=45., min_break=0.1):
         super(Ariston, self).__init__(args)
         self.playtime = playtime
         self.min_break = min_break
         self.tone2track = {t :  pos for t, pos in zip(self.tones, self.track_positions)}
+        self.lead = self.trail = 0.0
+
+    def drawHole(self, s_t, e_t, pitch, start_t=0):
+        rad_per_second = -math.pi * 2 / self.playtime
+        start_angle = 1*math.pi
+
+        s_arc = s_t * rad_per_second + start_angle
+        e_arc = e_t * rad_per_second + start_angle
+        self.ctx.arc(200, 200, self.tone2track[pitch]-1.25, e_arc, s_arc)
+        self.ctx.arc_negative(200, 200, self.tone2track[pitch]+1.25, s_arc, e_arc)
+        self.ctx.close_path()
+        self.ctx.stroke()
+
+    def renderSectionBorders(self, start, end, cards=None):
+        self.circle(200, 200, 166)
+        self.circle(200, 200, 5)
+        for x, y in ((-37, 0), (0, -37), (37, 0), (0, 37)):
+            self.circle(200 + x, 200 + y, 3)
+        
+        #self.ctx.set_font_size(2)
+        #
+        #for pitch, position in self.tone2track.items():
+        #    self.ctx.move_to(200-position-2, 200)
+        #    self.ctx.show_text(midi.NOTE_VALUE_MAP_SHARP[pitch])
+        #    self.ctx.stroke()
 
     def render(self, tracks):
         self.openCanvas()
 
-        self.circle(250, 250, 166)
-        self.circle(250, 250, 5)
-        for x, y in ((-37, 0), (0, -37), (37, 0), (0, 37)):
-            self.circle(250 + x, 250 + y, 3)
-
-        rad_per_second = -math.pi * 2 / self.playtime
-        start_angle = 1*math.pi
-
         tracks.parse_tracks(self)
 
-        for line in tracks.lines:
-            for i, e in enumerate(line):
-                if isinstance(e, midi.events.NoteOnEvent) and e.velocity == 0 or isinstance(e, midi.events.NoteOffEvent):
-                    s = line[i-1]
-                    # XXX check s
-                    if len(line) > i+1:
-                        # XXX check line[i+1]
-                        e.tick = min(e.tick, line[i+1].tick-self.min_break)
-                    if s.tick > e.tick: # needed?
-                        print(s.tick, e.tick, s, e)
-                    s_arc = s.tick * rad_per_second + start_angle
-                    e_arc = e.tick * rad_per_second + start_angle
-                    self.ctx.arc(250, 250, self.tone2track[s.pitch]-1.25, e_arc, s_arc)
-                    self.ctx.arc_negative(250, 250, self.tone2track[s.pitch]+1.25, s_arc, e_arc)
-                    self.ctx.close_path()
-                    self.ctx.stroke()
+        self.renderSection(tracks, 0, self.playtime * self.mm_per_second)
+
         if tracks.unsupported:
             self.ctx.move_to(10, 480)
             self.ctx.show_text("Pitches ignored: " + ", ".join(sorted(tracks.unsupported)))

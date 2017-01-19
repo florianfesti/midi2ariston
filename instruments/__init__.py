@@ -198,6 +198,22 @@ class PunchTapeOrgan(PunchCardInstrument):
         self.min_break = 2.1
         self.trackwidth = 3.2
 
+    def drawHole(self, s_t, e_t, pitch, section_t=0.0):
+        mm_per_second = self.mm_per_second
+        s_x = max((s_t-section_t), 0) * mm_per_second
+        e_x = (e_t-section_t) * mm_per_second
+        w = 0.5 * self.trackwidth
+        self.ctx.rectangle(s_x, self.tone2track[pitch] - w,
+                           e_x-s_x, self.trackwidth)
+        self.ctx.stroke()
+
+    def getEnd(self, e, i, line):
+        for j in range(i+1, len(line)):
+            s = line[j]
+            if isinstance(s, midi.events.NoteOnEvent) and s.velocity > 0:
+                return min(e.tick, s.tick-self.min_break)
+        return e.tick
+
     def renderSection(self, tracks,  start, end, cards=None):
         mm_per_second = self.mm_per_second
 
@@ -207,30 +223,34 @@ class PunchTapeOrgan(PunchCardInstrument):
         self.renderSectionBorders(start, end, cards)
 
         for line in tracks.lines:
+            start = None
+            started = 0
             for i, e in enumerate(line):
-                s = line[i-1]
-                if i>1 and e.tick < s.tick:
-                    print(s.tick, e.tick, s, e)
-
-        for line in tracks.lines:
-            for i, e in enumerate(line):
-                if (isinstance(e, midi.events.NoteOnEvent) and e.velocity == 0
-                    or isinstance(e, midi.events.NoteOffEvent)):
-                    s = line[i-1]
-                    if e.tick < t_start:
-                        continue
-                    elif s.tick > t_end:
-                        break
-
-                    # XXX check s
-                    if len(line) > i+1:
-                        # XXX check line[i+1]
-                        e.tick = min(e.tick, line[i+1].tick-self.min_break/mm_per_second)
-                    if s.tick > e.tick: # needed?
-                        print(s.tick, e.tick, s, e)
-                    s_x = (s.tick-t_start) * mm_per_second
-                    e_x = (e.tick-t_start) * mm_per_second
-                    w = 0.5 * self.trackwidth
-                    self.ctx.rectangle(s_x, self.tone2track[s.pitch] - w,
-                                       e_x-s_x, self.trackwidth)
-                    self.ctx.stroke()
+                if isinstance(e, midi.events.NoteOnEvent) and e.velocity > 0:
+                    if not started:
+                        # mark start of note
+                        start = e
+                        started += 1
+                    else:
+                        # if enough space
+                        end_t = e.tick - self.min_break
+                        if end_t > start.tick and end_t > t_start:
+                            # draw already started note
+                            # until this new one starts
+                            self.drawHole(start.tick, min(end_t, t_end), start.pitch, t_start)
+                            started += 1
+                            start = e
+                        else:
+                            # note enough space: add to earlier
+                            started += 1
+                if isinstance(e, midi.events.NoteOnEvent) and e.velocity == 0 or isinstance(e, midi.events.NoteOffEvent):
+                    started -= 1
+                    if not started: # end of last note
+                        end_t = min(self.getEnd(e, i, line), t_end)
+                        if end_t > t_start:
+                            self.drawHole(start.tick, end_t, start.pitch, t_start)
+                        start = None
+                    else: # ignore ends while the same tone continues
+                        pass
+                if start and start.tick > t_end:
+                    break

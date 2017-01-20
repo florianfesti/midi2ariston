@@ -1,0 +1,40 @@
+#!/usr/bin/python
+# Copyright (C) 2016-2017 Florian Festi
+#
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+import argparse
+import miditrack
+from instruments import getInstruments
+
+def main():
+    i = getInstruments()
+
+    parser = argparse.ArgumentParser(description="Convert midi to punch cards, punch tapes, puch discs, ...\n")
+    parser.add_argument('--width', '-w', type=float, default=800.0,
+                        help='maximum overall width of the pieces rendered.')
+    parser.add_argument('--cardlength', '-c', type=float, default=0.0,
+                        help='length of the punch cards')
+    parser.add_argument('--output', '-o', type=str, default='')
+    parser.add_argument('instrument', type=str, default='Ariston',
+                        choices=sorted(i.keys()),
+                        help="Type of instrument to render the piece for")
+
+    args = parser.parse_args()
+    args.input = "nope"
+
+    instrument = i[args.instrument](args)
+    print(", ".join(sorted([str(t) for t in instrument.tones])))
+main()
+

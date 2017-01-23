@@ -181,6 +181,9 @@ class Pling(PunchCardInstrument):
                 elif e.tick > t_end + dt:
                     break
                 if isinstance(e, midi.events.NoteOnEvent) and e.velocity > 0:
+                    if last and abs(e.tick - last.tick) < 0.0001:
+                        # ignore tones with the same starting time
+                        continue
                     if last and (e.tick - last.tick) * mm_per_second < self.min_distance:
                         self.circle(mm_per_second*(e.tick-t_start),
                                     self.tone2track[e.pitch], self.hole_diameter/5)

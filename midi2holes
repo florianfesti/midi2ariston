@@ -17,9 +17,11 @@
 import argparse
 import miditrack
 from instruments import getInstruments
+from boxes import formats
 
 def main():
     i = getInstruments()
+    fmts = formats.Formats()
 
     parser = argparse.ArgumentParser(description="Convert midi to punch cards, punch tapes, puch discs, ...\n")
     parser.add_argument('--instrument', '-i', type=str, default='Ariston',
@@ -29,6 +31,9 @@ def main():
                         help='maximum overall width of the pieces rendered.')
     parser.add_argument('--cardlength', '-c', type=float, default=0.0,
                         help='length of the punch cards')
+    parser.add_argument("--format", "-f", action="store", type=str,
+                        default="svg", choices=fmts.getFormats(),
+                        help="format of resulting file")
     parser.add_argument('--output', '-o', type=str, default='')
     parser.add_argument('filename', type=str)
 

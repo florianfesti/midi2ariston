@@ -16,7 +16,6 @@
 import math
 import pkgutil
 import midi
-import svgutil
 from boxes import formats
 
 def getInstruments():
@@ -40,14 +39,15 @@ class Instrument(object):
         self.formats = formats.Formats()
         self.format = format
         if not self.output:
-            if filename.endswith('.midi'):
-                self.output = filename[:-5] + '.svg'
-            elif filename.endswith('.mid'):
-                self.output = filename[:-4] + '.svg'
+            if self.filename.endswith('.midi'):
+                self.output = self.filename[:-4] + self.format
+            elif self.filename.endswith('.mid'):
+                self.output = self.filename[:-3] + self.format
             else:
-                self.output = filename + '.svg'
+                self.output = self.filename + '.' + self.format
         self.unplayable = 0
-    
+        self.formats = formats.Formats()
+
     def openCanvas(self):
         self.surface, self.ctx = self.formats.getSurface(self.format)
         self.ctx.set_source_rgb(0.0, 0.0, 0.0)
@@ -57,13 +57,11 @@ class Instrument(object):
         self.ctx.stroke()
         self.surface.flush()
         data = self.surface.finish()
+        data = self.formats.convert(data, self.format)
 
         with open(self.output, "wb") as f:
             f.write(data.getbuffer())
 
-        #svg = svgutil.SVGFile(self.output)
-        #svg.getEnvelope()
-        #svg.rewriteViewPort()
 
     def moveTo(self, x, y=0.0, degrees=0):
         """

@@ -1,4 +1,5 @@
-# Midi 2 Ariston
+Midi 2 Ariston
+==============
 
 Midi2ariston is a small tool for converting midi music to punch tape,
 cards or discs for mechanical music instruments as Ariston organettes

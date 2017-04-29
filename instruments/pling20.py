@@ -26,8 +26,8 @@ class Pling20(Pling):
     track_positions = [7. + i * 3 for i in range(20)]
     width = 70
 
-    def __init__(self, args):
-        super(Pling20, self).__init__(args)
+    def __init__(self, **kw):
+        super(Pling20, self).__init__(**kw)
         self.mm_per_second = 16.
         self.min_distance = 6.9
         self.hole_diameter = 2.5

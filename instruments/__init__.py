@@ -38,17 +38,17 @@ class Instrument(object):
 
     tones = []
     
-    def __init__(self, args):
+    def __init__(self, filename="", output=None, **kw):
         self.tone2number = {t : i for i, t in enumerate(self.tones)}
-        self.args = args
-        self.output = args.output
+        self.output = output
+        self.filename = filename
         if not self.output:
-            if args.input.endswith('.midi'):
-                self.output = args.input[:-5] + '.svg'
-            elif args.input.endswith('.mid'):
-                self.output = args.input[:-4] + '.svg'
+            if filename.endswith('.midi'):
+                self.output = filename[:-5] + '.svg'
+            elif filename.endswith('.mid'):
+                self.output = filename[:-4] + '.svg'
             else:
-                self.output = args.input + '.svg'
+                self.output = filename + '.svg'
         self.unplayable = 0
     
     def openCanvas(self):
@@ -88,11 +88,11 @@ class PunchCardInstrument(Instrument):
 
     track_positions = []
 
-    def __init__(self, args):
-        super(PunchCardInstrument, self).__init__(args)
+    def __init__(self, length=800, card_length=0, **kw):
+        super(PunchCardInstrument, self).__init__(**kw)
         self.tone2track = {t :  pos for t, pos in zip(self.tones, self.track_positions)}
-        self.length = args.width
-        self.card_length = args.cardlength
+        self.length = length
+        self.card_length = card_length
 
         self.lead = 30
         self.trail = 30
@@ -148,7 +148,7 @@ class PunchCardInstrument(Instrument):
 
         if cards:
             d, x = self.ctx.get_dash()
-            self.ctx.set_dash([0.5, 1.5])
+            #self.ctx.set_dash([0.5, 1.5])
             for i in range(int((end-start) // cards)-1):
                 self.ctx.move_to((i+1) * cards, 0)
                 self.ctx.line_to((i+1) * cards, self.width)
@@ -157,8 +157,8 @@ class PunchCardInstrument(Instrument):
 
 class Pling(PunchCardInstrument):
 
-    def __init__(self, args):
-        super(Pling, self).__init__(args)
+    def __init__(self, **kw):
+        super(Pling, self).__init__(**kw)
 
         self.hole_diameter = 1.75
         self.min_distance = 7.
@@ -198,8 +198,8 @@ class Pling(PunchCardInstrument):
 
 class PunchTapeOrgan(PunchCardInstrument):
 
-    def __init__(self, args):
-        super(PunchTapeOrgan, self).__init__(args)
+    def __init__(self, **kw):
+        super(PunchTapeOrgan, self).__init__(**kw)
 
         self.min_break = 2.1
         self.trackwidth = 3.2

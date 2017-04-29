@@ -26,8 +26,8 @@ class Pling30(Pling):
 
     track_positions = [6 + i * (58. / 29) for i in range(30)]
 
-    def __init__(self, args):
-        super(Pling30, self).__init__(args)
+    def __init__(self, **kw):
+        super(Pling30, self).__init__(**kw)
 
         self.mm_per_second = 16.
         self.min_distance = 7.9

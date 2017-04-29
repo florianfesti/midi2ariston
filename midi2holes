@@ -30,13 +30,13 @@ def main():
     parser.add_argument('--cardlength', '-c', type=float, default=0.0,
                         help='length of the punch cards')
     parser.add_argument('--output', '-o', type=str, default='')
-    parser.add_argument('input', type=str)
+    parser.add_argument('filename', type=str)
 
     args = parser.parse_args()
 
-    instrument = i[args.instrument](args)
+    instrument = i[args.instrument](**vars(args))
 
-    t = miditrack.MidiTrack(args.input)
+    t = miditrack.MidiTrack(args.filename)
     instrument.render(t)
 main()
 

@@ -26,8 +26,8 @@ class Organ20(PunchTapeOrgan):
 
     track_positions = [10 + i * 3.65 for i in range(20)]
 
-    def __init__(self, args):
-        super(Organ20, self).__init__(args)
+    def __init__(self, **kw):
+        super(Organ20, self).__init__(**kw)
 
         self.mm_per_second = 70
         self.min_break = 0.02

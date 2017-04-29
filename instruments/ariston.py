@@ -71,8 +71,8 @@ class Ariston(PunchTapeOrgan):
         85,
         86]
 
-    def __init__(self, args, playtime=45., min_break=0.1):
-        super(Ariston, self).__init__(args)
+    def __init__(self, playtime=45., min_break=0.1, **kw):
+        super(Ariston, self).__init__(**kw)
         self.playtime = playtime
         self.min_break = min_break
         self.tone2track = {t :  pos for t, pos in zip(self.tones, self.track_positions)}

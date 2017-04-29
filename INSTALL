@@ -1,0 +1,29 @@
+Installing midi2ariston
+=======================
+
+The tools can run directly from the git checkout. Proper setup.py is
+still on the todo list.
+
+Requirements
+------------
+
+Cairo
+.....
+
+midi2ariston is based on the cairo graphics library. It supports both the
+PyPi version *cairocffi* and python-cairo that might be shipped with your
+distribution.
+
+python-midi
+...........
+
+For reading midi file the python-midi is used that can be found at
+
+https://github.com/vishnubob/python-midi
+
+The master branch is Python 2 only. There is a Python 3 branch which
+is untested with midi2ariston. I also have a branch that has less
+invasive Python 3 compatiblility patches that has not yet been merged
+upstream:
+
+https://github.com/florianfesti/python-midi

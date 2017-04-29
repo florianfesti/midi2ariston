@@ -78,8 +78,11 @@ class Instrument(object):
         self.ctx.move_to(0, 0)
 
     def circle(self, x, y, r):
+        self.ctx.stroke()
+        self.ctx.set_source_rgb(0.0, 0.0, 1.0)
         self.ctx.arc(x, y, r, 0, 2*math.pi)
         self.ctx.stroke()
+        self.ctx.set_source_rgb(0.0, 0.0, 0.0)
 
 class PunchCardInstrument(Instrument):
 

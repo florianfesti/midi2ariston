@@ -243,7 +243,7 @@ class Context:
         self._mxy = self._m * self._xy
         self._lw = 0
         self._rgb = (0, 0, 0)
-        self._ff = "sans-serif"
+        self._ff = ("sans-serif",  False, False)
         self._fs = 10
         self._last_path = None
 
@@ -427,6 +427,9 @@ class SVGSurface(Surface):
         return t
 
     def _add_metadata(self, root) -> None:
+        if not hasattr(self, "metadata"):
+            return
+
         md = self.metadata
 
         title = "{group} - {name}".format(**md)
@@ -610,6 +613,9 @@ class PSSurface(Surface):
         }
 
     def _metadata(self) -> str:
+        if not hasattr(self, "metadata"):
+            return ""
+
         md = self.metadata
 
         desc = ""

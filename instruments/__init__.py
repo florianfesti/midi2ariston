@@ -56,7 +56,10 @@ class Instrument(object):
     def closeCanvas(self):
         self.ctx.stroke()
         self.surface.flush()
-        self.surface.finish()
+        data = self.surface.finish()
+
+        with open(self.output, "wb") as f:
+            f.write(data.getbuffer())
 
         #svg = svgutil.SVGFile(self.output)
         #svg.getEnvelope()
@@ -75,10 +78,16 @@ class Instrument(object):
 
     def circle(self, x, y, r):
         self.ctx.stroke()
+        self.ctx.save()
+        pt = self.ctx.get_current_point()
+        self.moveTo(x+r, y)
         self.ctx.set_source_rgb(0.0, 0.0, 1.0)
-        self.ctx.arc(x, y, r, 0, 2*math.pi)
+        for i in range(4):
+            self.ctx.arc(-r, 0, r, i*math.pi/2, (i+1)*math.pi/2)
         self.ctx.stroke()
         self.ctx.set_source_rgb(0.0, 0.0, 0.0)
+        self.ctx.restore()
+        self.ctx.move_to(*pt)
 
 class PunchCardInstrument(Instrument):
 

@@ -6,9 +6,9 @@ cards or discs for mechanical music instruments as Ariston organettes
 (which gives the tool its name as it was the first instrument
 supported), music boxes and street organs.
 
-Midi2Ariston is implemented in Python using the cairo library to
-produce SVG graphics that can be turned into physical media using a
-laser cutter ot cutting plotter.
+Midi2Ariston is implemented in pure Python and produces SVG graphics
+that can be turned into physical media using a laser cutter ot cutting
+plotter.
 
 While it is still pretty fresh it already supports checking for
 pitches not playable by the target instrument and tones not playable

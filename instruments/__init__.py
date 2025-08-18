@@ -13,16 +13,11 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-try:
-    import cairocffi    
-    cairocffi.install_as_pycairo()
-except ImportError:
-    pass
-import cairo
 import math
 import pkgutil
 import midi
 import svgutil
+from boxes import formats
 
 def getInstruments():
     instruments = {}
@@ -38,10 +33,12 @@ class Instrument(object):
 
     tones = []
     
-    def __init__(self, filename="", output=None, **kw):
+    def __init__(self, filename="", output=None, format="svg", **kw):
         self.tone2number = {t : i for i, t in enumerate(self.tones)}
         self.output = output
         self.filename = filename
+        self.formats = formats.Formats()
+        self.format = format
         if not self.output:
             if filename.endswith('.midi'):
                 self.output = filename[:-5] + '.svg'
@@ -52,8 +49,7 @@ class Instrument(object):
         self.unplayable = 0
     
     def openCanvas(self):
-        self.surface = cairo.SVGSurface(self.output, 10000, 10000)
-        self.ctx = cairo.Context(self.surface)
+        self.surface, self.ctx = self.formats.getSurface(self.format)
         self.ctx.set_source_rgb(0.0, 0.0, 0.0)
         self.ctx.set_line_width(0.2)
 
@@ -62,9 +58,9 @@ class Instrument(object):
         self.surface.flush()
         self.surface.finish()
 
-        svg = svgutil.SVGFile(self.output)
-        svg.getEnvelope()
-        svg.rewriteViewPort()
+        #svg = svgutil.SVGFile(self.output)
+        #svg.getEnvelope()
+        #svg.rewriteViewPort()
 
     def moveTo(self, x, y=0.0, degrees=0):
         """

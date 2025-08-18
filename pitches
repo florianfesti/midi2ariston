@@ -30,7 +30,7 @@ def main():
     args = parser.parse_args()
     instrument = i[args.instrument](**vars(args))
     for t in sorted(instrument.tones):
-        print "%4i %s" % (t, midi.NOTE_VALUE_MAP_SHARP[t])
+        print("%4i %s" % (t, midi.NOTE_VALUE_MAP_SHARP[t]))
 
 main()
 

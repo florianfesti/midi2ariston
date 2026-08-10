@@ -73,7 +73,7 @@ class MidiTrack:
                 # advance all other tracks to this point in time
                 # using the old tempo
                 tick = trackticks[nexttrack] + e.tick
-                for i in range(2):
+                for i in range(lt):
                     if (i == nexttrack or
                         not (trackpos[i] < tracklengths[i])):
                         continue

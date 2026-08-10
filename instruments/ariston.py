@@ -16,7 +16,7 @@
 import math
 
 import midi
-from instruments import PunchTapeOrgan
+from instruments import PunchTapeOrgan, restore
 
 class Ariston(PunchTapeOrgan):
     track_positions = [
@@ -78,15 +78,20 @@ class Ariston(PunchTapeOrgan):
         self.tone2track = {t :  pos for t, pos in zip(self.tones, self.track_positions)}
         self.lead = self.trail = 0.0
 
+    @restore
     def drawHole(self, s_t, e_t, pitch, start_t=0):
         rad_per_second = -math.pi * 2 / self.playtime
-        start_angle = 1*math.pi
+        start_angle = 1*math.pi + start_t * rad_per_second
 
         s_arc = s_t * rad_per_second + start_angle
         e_arc = e_t * rad_per_second + start_angle
-        self.ctx.arc(200, 200, self.tone2track[pitch]-1.25, e_arc, s_arc)
-        self.ctx.arc_negative(200, 200, self.tone2track[pitch]+1.25, s_arc, e_arc)
-        self.ctx.close_path()
+        angle = math.degrees(e_arc - s_arc)
+        s_ang = math.degrees(s_arc)
+        r = self.tone2track[pitch]
+        self.moveTo(200+math.cos(s_arc)*(r-1.25),
+                    200+math.sin(s_arc)*(r-1.25),
+                    s_ang)
+        self.polyline(2.5, -90, 0, (angle, r+1.25), 0, -90, 2.5, -90, 0, (-angle, r-1.25), 0, -90)
         self.ctx.stroke()
 
     def renderSectionBorders(self, start, end, cards=None):
@@ -113,4 +118,3 @@ class Ariston(PunchTapeOrgan):
             self.ctx.move_to(10, 480)
             self.ctx.show_text("Pitches ignored: " + ", ".join(sorted(tracks.unsupported)))
         self.closeCanvas()
-    

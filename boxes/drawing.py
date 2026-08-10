@@ -243,7 +243,7 @@ class Context:
         self._mxy = self._m * self._xy
         self._lw = 0
         self._rgb = (0, 0, 0)
-        self._ff = ("sans-serif",  False, False)
+        self._ff = ("sans-serif", False, False)
         self._fs = 10
         self._last_path = None
 
@@ -358,7 +358,7 @@ class Context:
 
     def fill(self):
         self._xy = (0, 0)
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def set_font(self, style, bold=False, italic=False):
         if style not in ("serif", "sans-serif", "monospaced"):
@@ -427,9 +427,6 @@ class SVGSurface(Surface):
         return t
 
     def _add_metadata(self, root) -> None:
-        if not hasattr(self, "metadata"):
-            return
-
         md = self.metadata
 
         title = "{group} - {name}".format(**md)
@@ -449,14 +446,14 @@ class SVGSurface(Surface):
         if not md["reproducible"]:
             self._addTag(w, 'dc:date', creation_date)
 
-        if "url" in md and md["url"]:
+        if md.get("url"):
             self._addTag(w, 'dc:source', md["url"])
             self._addTag(w, 'dc:source', md["url_short"])
         else:
             self._addTag(w, 'dc:source', md["cli"])
 
         desc = md["short_description"] or ""
-        if "description" in md and md["description"]:
+        if md.get("description"):
             desc += "\n\n" + md["description"]
         desc += "\n\nCreated with Boxes.py (https://boxes.hackerspace-bamberg.de/)\n"
         desc += "Command line: %s\n" % md["cli"]
@@ -567,6 +564,7 @@ class SVGSurface(Surface):
                         t.set("font-size", f"{params['fs']}px")
                         t.set("text-anchor", params.get('align', 'left'))
                         t.set("dominant-baseline", 'hanging')
+                        t.tail = "\n  "
                     else:
                         print("Unknown", c)
 
@@ -613,9 +611,6 @@ class PSSurface(Surface):
         }
 
     def _metadata(self) -> str:
-        if not hasattr(self, "metadata"):
-            return ""
-
         md = self.metadata
 
         desc = ""
@@ -628,7 +623,7 @@ class PSSurface(Surface):
         for line in (md["short_description"] or "").split("\n"):
             desc += "%% %s\n" % line
         desc += "%\n"
-        if "description" in md and md["description"]:
+        if md.get("description"):
             desc += "%\n"
             for line in md["description"].split("\n"):
                 desc += "%% %s\n" % line
@@ -893,7 +888,7 @@ class LBRN2Surface(Surface):
                             C, x, y = c[0:3]
                             if C == "M":
                                 if start and points_equal(start[1], start[2], x0, y0):
-                                    pl.text = "LineClosed"
+                                    pl.text += f"L{cnt-1} 0"
                                 start = c
                                 cnt = 1
                                 if self.dbg: print ("next, because M")
@@ -921,6 +916,8 @@ class LBRN2Surface(Surface):
                         if start and points_equal(start[1], start[2], x0, y0):
                                 if bspline == False:
                                     pl.text = "LineClosed"
+                                else:
+                                    pl.text += f"L{cnt-1} 0"
                         start = c
                         if self.dbg: print ("2", num)
                     elif C == "T":

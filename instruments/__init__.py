@@ -13,10 +13,31 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import datetime
 import math
-import pkgutil
 import midi
+import pkgutil
+from contextlib import contextmanager
+from functools import wraps
+
 from boxes import formats
+
+
+def restore(func):
+    """
+    Wrapper: Restore coordinates after function
+
+    :param func: function to wrap
+    """
+
+    @wraps(func)
+    def f(self, *args, **kw):
+        with self.saved_context():
+            pt = self.ctx.get_current_point()
+            func(self, *args, **kw)
+        self.ctx.move_to(*pt)
+
+    return f
 
 def getInstruments():
     instruments = {}
@@ -52,6 +73,18 @@ class Instrument(object):
         self.surface, self.ctx = self.formats.getSurface(self.format)
         self.ctx.set_source_rgb(0.0, 0.0, 0.0)
         self.ctx.set_line_width(0.2)
+        self.surface.metadata = {
+            "name": self.__class__.__name__,
+            "short_description": "",
+            "description": "",
+            "group": "midi2holes",
+            "url": "",
+            "url_short": "",
+            "cli": "",
+            "cli_short": "",
+            "creation_date": datetime.datetime.now(),
+            "reproducible": False,  # If True output does not contain variable content like creation date.
+            }
 
     def closeCanvas(self):
         self.ctx.stroke()
@@ -62,6 +95,113 @@ class Instrument(object):
         with open(self.output, "wb") as f:
             f.write(data.getbuffer())
 
+    @contextmanager
+    def saved_context(self):
+        """
+        Generator: for saving and restoring contexts.
+        """
+        cr = self.ctx
+        cr.save()
+        try:
+            yield cr
+        finally:
+            cr.restore()
+
+    ############################################################
+    ### Turtle graphics commands
+    ############################################################
+
+    def corner(self, degrees, radius=0):
+        """
+        Draw a corner
+
+        This is what does the burn corrections
+
+        :param degrees: angle
+        :param radius:  (Default value = 0)
+        """
+
+        try:
+            degrees, radius = degrees
+        except:
+            pass
+
+        rad = degrees * math.pi / 180
+
+        if ((radius > 0. and abs(degrees) > 36) or
+            (abs(degrees) > 100)):
+            steps = int(abs(degrees)/ 36.) + 1
+            for i in range(steps):
+                self.corner(float(degrees)/steps, radius)
+            return
+
+        if degrees > 0:
+            self.ctx.arc(0, radius, radius,
+                         -0.5 * math.pi, rad - 0.5 * math.pi)
+        elif radius > 0:
+            self.ctx.arc_negative(0, -(radius), radius,
+                                  0.5 * math.pi, rad + 0.5 * math.pi)
+        else:  # not rounded inner corner
+            self.ctx.arc_negative(0, 0, 0,
+                                  -0.5 * math.pi, -0.5 * math.pi + rad)
+
+        self._continueDirection(rad)
+
+    def edge(self, length):
+        """
+        Simple line
+        :param length: length in mm
+        """
+        self.ctx.move_to(0, 0)
+        self.ctx.line_to(length, 0)
+        self.ctx.translate(*self.ctx.get_current_point())
+
+    def step(self, out):
+        """
+        Create a parallel step perpendicular to the current direction
+        Positive values move to the outside of the part
+        """
+        if out > 1E-5:
+            self.corner(-90)
+            self.edge(out)
+            self.corner(90)
+        elif out < -1E-5:
+            self.corner(90)
+            self.edge(-out)
+            self.corner(-90)
+
+    def curveTo(self, x1, y1, x2, y2, x3, y3):
+        """control point 1, control point 2, end point
+
+        :param x1:
+        :param y1:
+        :param x2:
+        :param y2:
+        :param x3:
+        :param y3:
+        """
+        self.ctx.curve_to(x1, y1, x2, y2, x3, y3)
+        dx = x3 - x2
+        dy = y3 - y2
+        rad = math.atan2(dy, dx)
+        self._continueDirection(rad)
+
+    def polyline(self, *args):
+        """
+        Draw multiple connected lines
+
+        :param args: Alternating length in mm and angle in degrees.
+
+        angles may be tuple (angle, radius)
+        """
+        for i, arg in enumerate(args):
+            if i % 2:
+                if isinstance(arg, tuple):
+                    self.corner(*arg)
+                else:
+                    self.corner(arg)
+            else:
+                self.edge(arg)
 
     def moveTo(self, x, y=0.0, degrees=0):
         """
@@ -74,18 +214,32 @@ class Instrument(object):
         self.ctx.rotate(degrees * math.pi / 180.0)
         self.ctx.move_to(0, 0)
 
+    @restore
     def circle(self, x, y, r):
+        """
+        Draw a round disc
+
+        :param x: x position
+        :param y: y position
+        :param r: radius
+        """
+        self.moveTo(x + r, y)
+        a = 0
+        n = 10
+        da = 2 * math.pi / n
+        for i in range(n):
+            self.ctx.arc(-r, 0, r, a, a+da)
+            a += da
         self.ctx.stroke()
-        self.ctx.save()
-        pt = self.ctx.get_current_point()
-        self.moveTo(x+r, y)
-        self.ctx.set_source_rgb(0.0, 0.0, 1.0)
-        for i in range(4):
-            self.ctx.arc(-r, 0, r, i*math.pi/2, (i+1)*math.pi/2)
-        self.ctx.stroke()
-        self.ctx.set_source_rgb(0.0, 0.0, 0.0)
-        self.ctx.restore()
-        self.ctx.move_to(*pt)
+
+    def _continueDirection(self, angle=0):
+        """
+        Set coordinate system to current position (end point)
+
+        :param angle:  (Default value = 0) heading
+        """
+        self.ctx.translate(*self.ctx.get_current_point())
+        self.ctx.rotate(angle)
 
 class PunchCardInstrument(Instrument):
 

@@ -215,7 +215,7 @@ class Instrument(object):
         self.ctx.move_to(0, 0)
 
     @restore
-    def circle(self, x, y, r):
+    def circle(self, x, y, r=0., d=None):
         """
         Draw a round disc
 
@@ -223,6 +223,8 @@ class Instrument(object):
         :param y: y position
         :param r: radius
         """
+        if d is not None:
+            r = d/2.
         self.moveTo(x + r, y)
         a = 0
         n = 10

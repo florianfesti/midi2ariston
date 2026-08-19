@@ -68,6 +68,7 @@ class Instrument(object):
                 self.output = self.filename + '.' + self.format
         self.unplayable = 0
         self.formats = formats.Formats()
+        print(", ".join((midi.NOTE_VALUE_MAP_SHARP[p] for p in self.tones)))
 
     def openCanvas(self):
         self.surface, self.ctx = self.formats.getSurface(self.format)
@@ -318,7 +319,6 @@ class Pling(PunchCardInstrument):
 
     def __init__(self, **kw):
         super(Pling, self).__init__(**kw)
-
         self.hole_diameter = 1.75
         self.min_distance = 7.
 

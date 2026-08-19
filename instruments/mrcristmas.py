@@ -21,15 +21,7 @@ from instruments import PunchTapeOrgan, restore
 class MrChristmas(PunchTapeOrgan):
     track_positions = list([(48.1 + i*(162.2-48.1)/19)/2 for i in range(20)])
 
-    # notes for each pipe
     tones = list([midi.NOTE_NAME_MAP_SHARP[p] for p in [
-        'C_3',
-        'D_3',
-        'E_3',
-        'F_3',
-        'G_3',
-        'A_3',
-        'B_3',
         'C_4',
         'D_4',
         'E_4',
@@ -42,8 +34,15 @@ class MrChristmas(PunchTapeOrgan):
         'E_5',
         'F_5',
         'G_5',
-        'A_5']])
-    
+        'A_5',
+        'B_5',
+        'C_6',
+        'D_6',
+        'E_6',
+        'F_6',
+        'G_6',
+        'A_6']])
+
     def __init__(self, playtime=30., min_break=0.1, **kw):
         super().__init__(**kw)
         self.playtime = playtime

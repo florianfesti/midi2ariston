@@ -59,15 +59,15 @@ class MrChristmas(PunchTapeOrgan):
         s_ang = math.degrees(s_arc)
         r = self.tone2track[pitch]
         self.moveTo(0, 0, s_ang)
-        self.circle(r, 0, d=2.5)
+        self.circle(r, 0, d=2.9)
 
     def renderSectionBorders(self, start, end, cards=None):
         self.moveTo(100, 100) 
-        self.circle(0, 0, d=7*25.4)
+        self.circle(0, 0, d=178)
         self.circle(0, 0, d=0.2*25.4)
-        for i in range(144):
+        for i in range(143):
             with self.saved_context():
-                self.moveTo(0, 0, i*360/144.)
+                self.moveTo(0, 0, i*360/143.)
                 self.moveTo((174.5 - 5) / 2, 0)
                 self.polyline(2.5, 90, 2.3, 90, 2.5, 90, 2.3, 90)
 
